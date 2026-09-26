@@ -1,10 +1,12 @@
 import { updateSession } from '@/lib/supabase/middleware';
-import { NextRequest } from 'next/server';
+import { rateLimitMiddleware } from '@/lib/rate-limit';
+import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * Middleware to protect routes and refresh authentication sessions.
  *
  * This middleware:
+ * - Applies rate limiting to auth and API routes
  * - Refreshes Supabase auth sessions on every request
  * - Redirects unauthenticated users to login
  * - Redirects authenticated users away from auth pages to their dashboard
@@ -13,6 +15,13 @@ import { NextRequest } from 'next/server';
  * Protected routes: Everything except /login, /signup, /forgot-password, and public assets
  */
 export async function middleware(request: NextRequest) {
+  // 1. Apply Rate Limiting first
+  const rateLimitResponse = await rateLimitMiddleware(request);
+  if (rateLimitResponse.status === 429) {
+    return rateLimitResponse;
+  }
+
+  // 2. Update Supabase session
   return await updateSession(request);
 }
 
