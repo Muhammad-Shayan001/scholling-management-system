@@ -177,7 +177,7 @@ function getEnv(): Env {
     if (error instanceof z.ZodError) {
       console.error('❌ Environment variable validation failed:\n');
 
-      error.errors.forEach((err) => {
+      error.issues.forEach((err) => {
         const path = err.path.join('.');
         console.error(`  • ${path}: ${err.message}`);
       });
